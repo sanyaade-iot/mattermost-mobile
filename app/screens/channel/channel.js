@@ -100,7 +100,7 @@ class Channel extends PureComponent {
     };
 
     blurPostTextBox = () => {
-        this.postTextbox.getWrappedInstance().getWrappedInstance().blur();
+        this.postTextbox.getWrappedInstance().blur();
     };
 
     goToChannelInfo = wrapWithPreventDoubleTap(() => {
