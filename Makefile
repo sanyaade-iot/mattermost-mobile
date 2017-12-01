@@ -166,7 +166,7 @@ ifeq ($(ios_target), )
 	@echo "Try running make build-ios TARGET where TARGET is one of dev, beta or release"
 	@exit 1
 endif
-ifneq ($(ios_target), $(filter $(ios_target),dev beta release))
+ifneq ($(ios_target), $(filter $(ios_target),dev beta release pull_request))
 	@echo Invalid target set to build iOS app
 	@echo "Try running make build-ios TARGET where TARGET is one of dev, beta or release"
 	@exit 1
@@ -230,6 +230,9 @@ beta:
 	@:
 
 release:
+	@:
+
+pull_request:
 	@:
 
 ## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html

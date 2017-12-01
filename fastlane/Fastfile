@@ -1,3 +1,6 @@
+require 'aws-sdk-s3'
+require 'erb'
+
 fastlane_version '2.56.0'
 skip_docs
 
@@ -168,6 +171,32 @@ platform :ios do
     )
 
     sh 'cp -R ../assets/release/icons/ios/* ../ios/Mattermost/Images.xcassets/AppIcon.appiconset/'
+  end
+
+  lane :pull_request do
+    ipa_path = '../Mattermost.ipa'
+    File.delete(ipa_path) if File.file?(ipa_path)
+
+    match(type: 'adhoc', app_identifier: 'com.mattermost.rnbeta')
+    build_ios({
+      release: true,
+      increment_build: false,
+      ensure_git_status_clean: false,
+      method: 'ad-hoc'
+    })
+
+    plist_template = File.read('plist.erb')
+    abbreviated_commit_hash = last_git_commit[:abbreviated_commit_hash]
+    # TODO: See if we can use abbreviated_commit_hash as bundle-version in the plist file
+    plist_body = ERB.new(plist_template).result(binding)
+    
+
+    s3 = Aws::S3::Resource.new(region: ENV['AWS_REGION'])
+    plist_obj = s3.bucket(ENV['AWS_BUCKET_NAME']).object("ios/#{abbreviated_commit_hash}.plist")
+    plist_obj.put(body: plist_body)
+
+    ipa_obj = s3.bucket(ENV['AWS_BUCKET_NAME']).object("ios/#{abbreviated_commit_hash}.ipa")
+    ipa_obj.upload_file(ipa_path)
   end
 
   error do |lane, exception|
