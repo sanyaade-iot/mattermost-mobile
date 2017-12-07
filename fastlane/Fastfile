@@ -197,6 +197,11 @@ platform :ios do
 
     ipa_obj = s3.bucket(ENV['AWS_BUCKET_NAME']).object("ios/#{abbreviated_commit_hash}.ipa")
     ipa_obj.upload_file(ipa_path)
+
+    # TODO: Upload beta logo if not present
+
+    puts "iOS download link:"
+    puts "itms-services://?action=download-manifest&url=https://s3.#{ENV['AWS_REGION']}.amazonaws.com/#{ENV['AWS_BUCKET_NAME']}/ios/#{abbreviated_commit_hash}.plist"
   end
 
   error do |lane, exception|
