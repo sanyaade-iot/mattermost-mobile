@@ -234,12 +234,7 @@ platform :ios do
         scheme: 'Mattermost',
         configuration: (options[:release] ? 'Release' : 'Debug'),
         workspace: './ios/Mattermost.xcworkspace',
-        export_method: options[:method],
-        export_options: {
-          provisioningProfiles: {
-            "com.mattermost.rnbeta" => "match Development com.mattermost.rnbeta"
-          }
-        }
+        export_method: options[:method]
     )
   end
 
