@@ -522,6 +522,20 @@
 			remoteGlobalIDString = 58B5119B1A9E6C1200147676;
 			remoteInfo = RCTText;
 		};
+		BD13370D1FDA17A800E90753 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 849D881A0372465294DE7315 /* RNSafeArea.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6DA7B8031F692C4C00FD1D50;
+			remoteInfo = RNSafeArea;
+		};
+		BD1337121FDA17A900E90753 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 41898656FAE24E0BB390D0E4 /* RNReactNativeDocViewer.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RNReactNativeDocViewer;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1179,6 +1193,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		BD13370A1FDA17A800E90753 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BD13370E1FDA17A800E90753 /* libRNSafeArea.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BD13370F1FDA17A900E90753 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BD1337131FDA17A900E90753 /* libRNReactNativeDocViewer.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1379,11 +1409,11 @@
 					ProjectRef = EBA6063A99C141098D40C67A /* RNPasscodeStatus.xcodeproj */;
 				},
 				{
-					ProductGroup = 7F6CEE201FDAEA0D0010135A /* Products */;
+					ProductGroup = BD13370F1FDA17A900E90753 /* Products */;
 					ProjectRef = 41898656FAE24E0BB390D0E4 /* RNReactNativeDocViewer.xcodeproj */;
 				},
 				{
-					ProductGroup = 7F6CEE251FDAEA0D0010135A /* Products */;
+					ProductGroup = BD13370A1FDA17A800E90753 /* Products */;
 					ProjectRef = 849D881A0372465294DE7315 /* RNSafeArea.xcodeproj */;
 				},
 				{
@@ -1846,6 +1876,20 @@
 			remoteRef = 832341B41AAA6A8300B99B32 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		BD13370E1FDA17A800E90753 /* libRNSafeArea.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNSafeArea.a;
+			remoteRef = BD13370D1FDA17A800E90753 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BD1337131FDA17A900E90753 /* libRNReactNativeDocViewer.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRNReactNativeDocViewer.a;
+			remoteRef = BD1337121FDA17A900E90753 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -2126,7 +2170,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Mattermost/Mattermost.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 74;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 72;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = UQ8HT4Q2XM;
 				ENABLE_BITCODE = NO;
@@ -2176,7 +2221,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Mattermost/Mattermost.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 74;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 72;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = UQ8HT4Q2XM;
 				ENABLE_BITCODE = NO;
