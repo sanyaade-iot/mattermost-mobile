@@ -185,7 +185,7 @@ ifeq ($(android_target), )
 	@echo "Try running make build-android TARGET where TARGET is one of dev, beta or release"
 	@exit 1
 endif
-ifneq ($(android_target), $(filter $(android_target),dev alpha release))
+ifneq ($(android_target), $(filter $(android_target),dev alpha release pull_request))
 	@echo Invalid target set to build Android app
 	@echo "Try running make build-android TARGET where TARGET is one of dev, beta or release"
 	@exit 1

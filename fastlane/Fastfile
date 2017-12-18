@@ -202,7 +202,7 @@ platform :ios do
     ios_install_url = "itms-services://?action=download-manifest&url=https://s3.#{ENV['AWS_REGION']}.amazonaws.com/#{ENV['AWS_BUCKET_NAME']}/ios/#{abbreviated_commit_hash}.plist"
 
     if ENV['MATTERMOST_WEBHOOK_URL']
-      `curl -i -X POST -H 'Content-Type: application/json' -d '{"text": "iOS build #{abbreviated_commit_hash}: #{ios_install_url}"}' #{ENV['MATTERMOST_WEBHOOK_URL']}`
+      `curl -i -X POST -H 'Content-Type: application/json' -d '{"text": "QA build #{abbreviated_commit_hash} — iOS: #{ios_install_url}"}' #{ENV['MATTERMOST_WEBHOOK_URL']}`
     end
   end
 
@@ -395,6 +395,30 @@ platform :android do
         build_type: 'Unsigned',
         project_dir: 'android/'
     )
+  end
+
+  lane :pull_request do
+
+    prepare_release()
+
+    build_android({
+      release: true,
+      increment_build: false,
+      ensure_git_status_clean: false # FIXME: Only false for development.
+    })
+
+    abbreviated_commit_hash = last_git_commit[:abbreviated_commit_hash]
+
+    s3 = Aws::S3::Resource.new(region: ENV['AWS_REGION'])
+
+    apk_obj = s3.bucket(ENV['AWS_BUCKET_NAME']).object("android/#{abbreviated_commit_hash}.apk")
+    apk_obj.upload_file("#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]}")
+
+    android_install_path = "https://s3.#{ENV['AWS_REGION']}.amazonaws.com/#{ENV['AWS_BUCKET_NAME']}/android/#{abbreviated_commit_hash}.apk"
+
+    if ENV['MATTERMOST_WEBHOOK_URL']
+      `curl -i -X POST -H 'Content-Type: application/json' -d '{"text": "QA build #{abbreviated_commit_hash} — Android: #{android_install_path}"}' #{ENV['MATTERMOST_WEBHOOK_URL']}`
+    end
   end
 
   error do |lane, exception|
