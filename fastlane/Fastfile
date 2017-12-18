@@ -181,7 +181,7 @@ platform :ios do
     build_ios({
       release: true,
       increment_build: false,
-      ensure_git_status_clean: false,
+      ensure_git_status_clean: true,
       method: 'ad-hoc'
     })
 
@@ -189,7 +189,6 @@ platform :ios do
     abbreviated_commit_hash = last_git_commit[:abbreviated_commit_hash]
     # TODO: See if we can use abbreviated_commit_hash as bundle-version in the plist file
     plist_body = ERB.new(plist_template).result(binding)
-    
 
     s3 = Aws::S3::Resource.new(region: ENV['AWS_REGION'])
     plist_obj = s3.bucket(ENV['AWS_BUCKET_NAME']).object("ios/#{abbreviated_commit_hash}.plist")
@@ -200,8 +199,11 @@ platform :ios do
 
     # TODO: Upload beta logo if not present
 
-    puts "iOS download link:"
-    puts "itms-services://?action=download-manifest&url=https://s3.#{ENV['AWS_REGION']}.amazonaws.com/#{ENV['AWS_BUCKET_NAME']}/ios/#{abbreviated_commit_hash}.plist"
+    ios_install_url = "itms-services://?action=download-manifest&url=https://s3.#{ENV['AWS_REGION']}.amazonaws.com/#{ENV['AWS_BUCKET_NAME']}/ios/#{abbreviated_commit_hash}.plist"
+
+    if ENV['MATTERMOST_WEBHOOK_URL']
+      `curl -i -X POST -H 'Content-Type: application/json' -d '{"text": "iOS build #{abbreviated_commit_hash}: #{ios_install_url}"}' #{ENV['MATTERMOST_WEBHOOK_URL']}`
+    end
   end
 
   error do |lane, exception|
