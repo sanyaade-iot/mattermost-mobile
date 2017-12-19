@@ -435,7 +435,7 @@ platform :android do
     beta_dir = '../android/app/src/main/java/com/mattermost/rnbeta/'
     release_dir = '../android/app/src/main/java/com/mattermost/rn/'
 
-    sh "mv #{beta_dir} #{release_dir}"
+    sh "mv #{beta_dir} #{release_dir}" if Dir.exists?(beta_dir)
     sh 'cp -R ../assets/release/icons/android/* ../android/app/src/main/res/'
 
     find_replace_string(
