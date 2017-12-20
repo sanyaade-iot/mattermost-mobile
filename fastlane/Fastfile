@@ -31,7 +31,7 @@ platform :ios do
   desc 'Build Release file'
   desc 'This will also make sure the profile is up to date'
   lane :dev do
-    match(type: 'adhoc', app_identifier: 'com.mattermost.rnbeta')
+    match(type: 'adhoc', app_identifier: ['com.mattermost.rnbeta.MattermostShare', 'com.mattermost.rnbeta'])
 
     build_ios({
               release: false,
@@ -44,7 +44,7 @@ platform :ios do
   desc 'Submit a new Beta Build to Apple TestFlight'
   desc 'This will also make sure the profile is up to date'
   lane :beta do
-    match(type: 'appstore', app_identifier: 'com.mattermost.rnbeta')
+    match(type: 'appstore', app_identifier: ['com.mattermost.rnbeta.MattermostShare', 'com.mattermost.rnbeta'])
 
     configure_from_env()
 
@@ -90,21 +90,33 @@ platform :ios do
 
   desc 'Deploy a new version to the App Store'
   lane :release do
-    match(type: 'appstore', app_identifier: 'com.mattermost.rn')
+    match(type: 'appstore', app_identifier: ['com.mattermost.rn.MattermostShare', 'com.mattermost.rn'])
 
     configure_from_env()
-
-    # snapshot
 
     update_app_identifier(
         xcodeproj: './ios/Mattermost.xcodeproj',
         plist_path: 'Mattermost/Info.plist',
         app_identifier: 'com.mattermost.rn'
     )
+    update_app_identifier(
+        xcodeproj: './ios/Mattermost.xcodeproj',
+        plist_path: 'MattermostShare/Info.plist',
+        app_identifier: 'com.mattermost.rn.MattermostShare'
+    )
     update_info_plist(
         xcodeproj: './ios/Mattermost.xcodeproj',
         plist_path: 'Mattermost/Info.plist',
         display_name: 'Mattermost'
+    )
+
+    update_app_group_identifiers(
+        entitlements_file: './ios/Mattermost/Mattermost.entitlements',
+        app_group_identifiers: ['group.com.mattermost']
+    )
+    update_app_group_identifiers(
+        entitlements_file: './ios/MattermostShare/MattermostShare.entitlements',
+        app_group_identifiers: ['group.com.mattermost']
     )
 
     sh 'cp -R ../assets/release/icons/ios/* ../ios/Mattermost/Images.xcassets/AppIcon.appiconset/'
@@ -116,18 +128,7 @@ platform :ios do
               method: 'app-store'
           })
 
-    # deliver(
-    #     force: true,
-    #     skip_screenshots: true,
-    #     skip_metadata: true,
-    #     submit_for_review: false, #lets try this after the first release
-    #     automatic_release: false #lets try this after the first release
-    # )
-
-    ### We are going to publish the app to the testflight first and not deliver it directly to the app store
     pilot(skip_waiting_for_build_processing: true)
-
-    # frameit
 
     reset_git_repo(
         force: true,
@@ -161,10 +162,24 @@ platform :ios do
         plist_path: 'Mattermost/Info.plist',
         app_identifier: 'com.mattermost.rn'
     )
+    update_app_identifier(
+        xcodeproj: './ios/Mattermost.xcodeproj',
+        plist_path: 'MattermostShare/Info.plist',
+        app_identifier: 'com.mattermost.rn.MattermostShare'
+    )
     update_info_plist(
         xcodeproj: './ios/Mattermost.xcodeproj',
         plist_path: 'Mattermost/Info.plist',
         display_name: 'Mattermost'
+    )
+
+    update_app_group_identifiers(
+        entitlements_file: './ios/Mattermost/Mattermost.entitlements',
+        app_group_identifiers: ['group.com.mattermost']
+    )
+    update_app_group_identifiers(
+        entitlements_file: './ios/MattermostShare/MattermostShare.entitlements',
+        app_group_identifiers: ['group.com.mattermost']
     )
 
     sh 'cp -R ../assets/release/icons/ios/* ../ios/Mattermost/Images.xcassets/AppIcon.appiconset/'
