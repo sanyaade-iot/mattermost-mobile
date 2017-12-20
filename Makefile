@@ -45,58 +45,13 @@ dist/assets: $(BASE_ASSETS) $(OVERRIDE_ASSETS)
 	@echo "Generating app assets"
 	@node scripts/make-dist-assets.js
 
-pre-run: | .yarninstall .podinstall dist/assets ## Does some yarn and cocoapod updates/installs
-
-run: run-ios ## Pretty much the same as react-native run-ios
-
-start: | pre-run start-packager ## Starts the package server
-
-stop: stop-packager ## Stops the package server; alias for 'stop-packager'
-
-check-device-ios:
-	@if ! [ $(shell command -v xcodebuild) ]; then \
-		@echo "xcode is not installed"; \
-		@exit 1; \
-	fi
-	@if ! [ $(shell command -v watchman) ]; then \
-		@echo "watchman is not installed"; \
-		@exit 1; \
-	fi
-
-run-ios: | check-device-ios start-build-packager ## Runs the app on an iOS emulator or dev device
-	@echo Running iOS app in development
-	@react-native run-ios --simulator="${SIMULATOR}"
-
-check-device-android:
-	@if ! [ $(ANDROID_HOME) ]; then \
-		@echo "ANDROID_HOME is not set"; \
-		@exit 1; \
-	fi
-	@if ! [ $(shell command -v adb 2> /dev/null) ]; then \
-		@echo "adb is not installed"; \
-		@exit 1; \
-	fi
-ifneq ($(shell adb get-state),device)
-	@echo "no android device or emulator is running"
-	@exit 1;
-endif
-	@if ! [ $(shell command -v watchman 2> /dev/null) ]; then \
-		@echo "watchman is not installed"; \
-		@exit 1; \
-	fi
-
-run-android: | check-device-android start-build-packager prepare-android-build ## Runs the app on an Android emulator or dev device
-	@echo Running Android app in development
-	@react-native run-android --no-packager
-
-test: | pre-run check-style ## Runs tests and eslinting
-	@yarn test
+pre-run: | .yarninstall .podinstall dist/assets ## Installs dependencies and assets
 
 check-style: .yarninstall ## Runs eslint
 	@echo Checking for style guide compliance
 	@node_modules/.bin/eslint --ext \".js\" --ignore-pattern node_modules --quiet .
 
-clean: ## Removes temp files
+clean: ## Cleans dependencies, previous builds and temp files
 	@echo Cleaning started
 
 	@yarn cache clean
@@ -133,32 +88,83 @@ post-install:
 	@cd ./node_modules/react-native-svg/ios && rm -rf PerformanceBezier && git clone https://github.com/adamwulf/PerformanceBezier.git
 	@cd ./node_modules/mattermost-redux && yarn run build
 
-start-packager: ## Starts the package server
+test: | pre-run check-style ## Runs eslint and tests
+	@yarn test
+
+start: | pre-run ## Starts the React Native packager server
 	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
 		echo Starting React Native packager server; \
 		node ./node_modules/react-native/local-cli/cli.js start; \
 	else \
 		echo React Native packager server already running; \
-		ps -e | grep -i "cli.js start" | grep -v grep | awk '{print $$1}' > server.PID; \
+		ps -e | grep -i "cli.js start" | grep -iv grep | awk '{print $$1}' > server.PID; \
 	fi
 
-start-build-packager: ## Starts the package server with --reset-cache flag
-	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
-		echo Starting React Native packager server; \
-		node ./node_modules/react-native/local-cli/cli.js start --reset-cache & echo $$! > server.PID; \
-	else \
-		echo React Native packager server already running; \
-		ps -e | grep -i "cli.js start" | grep -v grep | awk '{print $$1}' > server.PID; \
-	fi
-
-stop-packager: ## Stops the package server
+stop: ## Stops the package server; alias for 'stop-packager'
 	@echo Stopping React Native packager server
-	@if [ -e "server.PID" ] ; then \
-		kill -9 `cat server.PID` && rm server.PID; \
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 1 ]; then \
+		ps -e | grep -i "cli.js start" | grep -iv grep | awk '{print $$1}' | xargs kill -9; \
 		echo React Native packager server stopped; \
 	else \
 		echo No React Native packager server running; \
 	fi
+
+check-device-ios:
+	@if ! [ $(shell command -v xcodebuild) ]; then \
+		echo "xcode is not installed"; \
+		exit 1; \
+	fi
+	@if ! [ $(shell command -v watchman) ]; then \
+		echo "watchman is not installed"; \
+		exit 1; \
+	fi
+
+check-device-android:
+	@if ! [ $(ANDROID_HOME) ]; then \
+		@echo "ANDROID_HOME is not set"; \
+		@exit 1; \
+	fi
+	@if ! [ $(shell command -v adb 2> /dev/null) ]; then \
+		@echo "adb is not installed"; \
+		@exit 1; \
+	fi
+
+	@echo "Connect your Android device or open the emulator"
+	@adb wait-for-device
+
+	@if ! [ $(shell command -v watchman 2> /dev/null) ]; then \
+		@echo "watchman is not installed"; \
+		@exit 1; \
+	fi
+
+prepare-android-build:
+	@rm -rf ./node_modules/react-native/local-cli/templates/HelloWorld
+	@rm -rf ./node_modules/react-native-linear-gradient/Examples/
+	@rm -rf ./node_modules/react-native-orientation/demo/
+
+run: run-ios ## alias for run-ios
+
+run-ios: | check-device-ios pre-run ## Runs the app on an iOS simulator
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
+		echo Starting React Native packager server; \
+		node ./node_modules/react-native/local-cli/cli.js start & echo Running iOS app in development; \
+		react-native run-ios --simulator="${SIMULATOR}"; \
+		wait; \
+	else \
+		echo Running iOS app in development; \
+		react-native run-ios --simulator="${SIMULATOR}"; \
+	fi
+
+run-android: | check-device-android pre-run prepare-android-build ## Runs the app on an Android emulator or dev device
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
+        echo Starting React Native packager server; \
+    	node ./node_modules/react-native/local-cli/cli.js start & echo echo Running Android app in development; \
+    	react-native run-android --no-packager; \
+    	wait; \
+    else \
+    	echo Running Android app in development; \
+        react-native run-android --no-packager; \
+    fi
 
 check-ios-target:
 ifeq ($(ios_target), )
@@ -171,13 +177,10 @@ ifneq ($(ios_target), $(filter $(ios_target),dev beta release))
 	@echo "Try running make build-ios TARGET where TARGET is one of dev, beta or release"
 	@exit 1
 endif
-
-do-build-ios:
-	@echo "Building ios $(ios_target) app"
-	@cd fastlane && BABEL_ENV=production NODE_ENV=production bundle exec fastlane ios $(ios_target)
-
-
-build-ios: | check-ios-target pre-run check-style start-build-packager do-build-ios stop-packager
+ifeq ($(ios_target),release)
+	@mkdir -p assets/override
+	@echo "{\"AppGroupId\": \"group.com.mattermost\"}" > assets/override/config.json
+endif
 
 check-android-target:
 ifeq ($(android_target), )
@@ -191,34 +194,51 @@ ifneq ($(android_target), $(filter $(android_target),dev alpha release))
 	@exit 1
 endif
 
-prepare-android-build:
-	@rm -rf ./node_modules/react-native/local-cli/templates/HelloWorld
-	@rm -rf ./node_modules/react-native-linear-gradient/Examples/
-	@rm -rf ./node_modules/react-native-orientation/demo/
+build-ios: | check-ios-target pre-run check-style
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
+		echo Starting React Native packager server; \
+		node ./node_modules/react-native/local-cli/cli.js start & echo; \
+	fi
+	@echo "Building ios $(ios_target) app"
+	@cd fastlane && BABEL_ENV=production NODE_ENV=production bundle exec fastlane ios $(ios_target)
+	@ps -e | grep -i "cli.js start" | grep -iv grep | awk '{print $$1}' | xargs kill -9
+	@rm -rf assets/override
 
-do-build-android:
+build-android: | check-android-target pre-run check-style prepare-android-build
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
+		echo Starting React Native packager server; \
+		node ./node_modules/react-native/local-cli/cli.js start & echo; \
+	fi
 	@echo "Building android $(android_target) app"
 	@cd fastlane && BABEL_ENV=production NODE_ENV=production bundle exec fastlane android $(android_target)
+	@ps -e | grep -i "cli.js start" | grep -iv grep | awk '{print $$1}' | xargs kill -9
 
-build-android: | check-android-target pre-run check-style start-build-packager prepare-android-build do-build-android stop-packager
-
-do-unsigned-ios:
+unsigned-ios: pre-run check-style
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
+		echo Starting React Native packager server; \
+		node ./node_modules/react-native/local-cli/cli.js start & echo; \
+	fi
 	@echo "Building unsigned iOS app"
+	@mkdir -p assets/override
+	@echo "{\"AppGroupId\": \"group.com.mattermost\"}" > assets/override/config.json
 	@cd fastlane && NODE_ENV=production bundle exec fastlane ios unsigned
 	@mkdir -p build-ios
 	@cd ios/ && xcodebuild -workspace Mattermost.xcworkspace/ -scheme Mattermost -sdk iphoneos -configuration Relase -parallelizeTargets -resultBundlePath ../build-ios/result -derivedDataPath ../build-ios/ CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 	@cd build-ios/ && mkdir -p Payload && cp -R Build/Products/Release-iphoneos/Mattermost.app Payload/ && zip -r Mattermost-unsigned.ipa Payload/
 	@mv build-ios/Mattermost-unsigned.ipa .
 	@rm -rf build-ios/
+	@rm -rf assets/override
+	@ps -e | grep -i "cli.js start" | grep -iv grep | awk '{print $$1}' | xargs kill -9
 
-do-unsigned-android:
+unsigned-android: pre-run check-style prepare-android-build
+	@if [ $(shell ps -e | grep -i "cli.js start" | grep -civ grep) -eq 0 ]; then \
+		echo Starting React Native packager server; \
+		node ./node_modules/react-native/local-cli/cli.js start & echo; \
+    fi
 	@echo "Building unsigned Android app"
 	@cd fastlane && NODE_ENV=production bundle exec fastlane android unsigned
 	@mv android/app/build/outputs/apk/app-unsigned-unsigned.apk ./Mattermost-unsigned.apk
-
-unsigned-android: pre-run check-style start-build-packager do-unsigned-android stop-packager
-
-unsigned-ios: pre-run check-style start-build-packager do-unsigned-ios stop-packager
+	@ps -e | grep -i "cli.js start" | grep -iv grep | awk '{print $$1}' | xargs kill -9
 
 alpha:
 	@:
@@ -232,6 +252,6 @@ beta:
 release:
 	@:
 
-## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+## Help documentation at https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
